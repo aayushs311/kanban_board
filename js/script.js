@@ -108,9 +108,9 @@ const loadTicketsFromLocalStorage = () => {
     })
 }
 
-const initializeKanban = () => {
+const initializeKanbanBoard = () => {
     loadTicketsFromLocalStorage();
     setupEventListeners();
 }
 
-initializeKanban();
+initializeKanbanBoard();
