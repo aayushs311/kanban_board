@@ -1,5 +1,7 @@
 let isModalOpen = true;
 let modalPriorityColor = "red";
+let taskArr = [];
+let currentStatus = "todo";
 
 /*
     Helper functions
@@ -7,6 +9,8 @@ let modalPriorityColor = "red";
 const query = (selector) => document.querySelector(selector);
 const queryAll = (selector) => document.querySelectorAll(selector);
 const createElement = (HTMLTag) => document.createElement(HTMLTag);
+const updateLocalStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+const getLocalStorage = (key) => localStorage.getItem(key);
 
 /*
     Create ticket elements.
@@ -45,9 +49,12 @@ const createTicketHandler = () => {
 
     if(task) {
         const id = `kb-${new ShortUniqueId().randomUUID()}`;
-        query("#todo").appendChild(createTicketElement(modalPriorityColor, id, task));
+        query(`#${currentStatus}`).appendChild(createTicketElement(modalPriorityColor, id, task));
         toggleModal();
         textarea.value = "";
+        
+        taskArr.push({id, task, priorityColor: modalPriorityColor, status: currentStatus});
+        updateLocalStorage("tickets", taskArr);
     }
 }
 
@@ -90,4 +97,20 @@ const setupEventListeners = () => {
     })
 }
 
-setupEventListeners();
+const loadTicketsFromLocalStorage = () => {
+    const tickets = JSON.parse(getLocalStorage("tickets"));
+    const storedTickets = tickets ?? [];
+    
+    storedTickets.forEach((val) => {
+        container = query(`#${val.status}`);
+
+        container.appendChild(createTicketElement(val.priorityColor, val.id, val.task));
+    })
+}
+
+const initializeKanban = () => {
+    loadTicketsFromLocalStorage();
+    setupEventListeners();
+}
+
+initializeKanban();
