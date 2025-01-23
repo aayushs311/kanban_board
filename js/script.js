@@ -43,18 +43,42 @@ const createTicketElement = (priorityColor, id, task) => {
     return ticketContainer;
 }
 
+const addLockUnlockHandler = (ticketEl, taskId) => {
+
+    const locKUnlockBtn = ticketEl.querySelector(".fa-solid");
+    const ticketTask = ticketEl.querySelector(".ticket-task")
+    
+    locKUnlockBtn.addEventListener("click", () => {
+        
+        locKUnlockBtn.classList.toggle("fa-unlock");
+        
+        ticketTask.contentEditable = locKUnlockBtn.classList.contains("fa-unlock");
+        
+        const idx = taskArr.findIndex((val) => val.id === taskId);
+        console.log(idx);
+        console.log(ticketTask.innerText);
+        taskArr[idx].task = ticketTask.innerText;
+
+
+        updateLocalStorage("tickets", taskArr);
+    })
+}
+
 const createTicketHandler = () => {
     const textarea = query(".modal-textarea");
     const task = textarea.value.trim();
 
     if(task) {
         const id = `kb-${new ShortUniqueId().randomUUID()}`;
-        query(`#${currentStatus}`).appendChild(createTicketElement(modalPriorityColor, id, task));
+        const ticketEl = createTicketElement(modalPriorityColor, id, task);
+        query(`#${currentStatus}`).appendChild(ticketEl);
         toggleModal();
         textarea.value = "";
         
         taskArr.push({id, task, priorityColor: modalPriorityColor, status: currentStatus});
         updateLocalStorage("tickets", taskArr);
+
+        addLockUnlockHandler(ticketEl, id);
     }
 }
 
@@ -98,13 +122,14 @@ const setupEventListeners = () => {
 }
 
 const loadTicketsFromLocalStorage = () => {
-    const tickets = JSON.parse(getLocalStorage("tickets"));
-    const storedTickets = tickets ?? [];
+    taskArr = getLocalStorage("tickets") ? JSON.parse(getLocalStorage("tickets")) : [];
     
-    storedTickets.forEach((val) => {
-        container = query(`#${val.status}`);
+    taskArr.forEach((val) => {
+        const ticketEl = createTicketElement(val.priorityColor, val.id, val.task);
 
-        container.appendChild(createTicketElement(val.priorityColor, val.id, val.task));
+        query(`#${val.status}`).appendChild(ticketEl);
+
+        addLockUnlockHandler(ticketEl, val.id);
     })
 }
 
