@@ -2,6 +2,7 @@ let isModalOpen = true;
 let modalPriorityColor = "red";
 let taskArr = [];
 let currentStatus = "todo";
+let isRemoveFlagEnabled = false;
 
 /*
     Helper functions
@@ -64,6 +65,16 @@ const addLockUnlockHandler = (ticketEl, taskId) => {
     })
 }
 
+const deleteTicketHandler = (ticketEl, taskId) => {
+    ticketEl.addEventListener("click", () => {
+        if(isRemoveFlagEnabled) {
+            ticketEl.remove();
+            taskArr = taskArr.filter((val) => val.id !== taskId);
+            updateLocalStorage("tickets", taskArr);
+        }
+    })
+}
+
 const createTicketHandler = () => {
     const textarea = query(".modal-textarea");
     const task = textarea.value.trim();
@@ -79,6 +90,8 @@ const createTicketHandler = () => {
         updateLocalStorage("tickets", taskArr);
 
         addLockUnlockHandler(ticketEl, id);
+
+        deleteTicketHandler(ticketEl, id);
     }
 }
 
@@ -100,11 +113,19 @@ const toggleModal = () => {
     isModalOpen = !isModalOpen;
 }
 
+const toggleRemoveFlag = () => {
+    isRemoveFlagEnabled = !isRemoveFlagEnabled;
+    const removeBtn = query(".remove-btn");
+    removeBtn.style.color = isRemoveFlagEnabled ? "red" : "black";
+}
+
 const setupEventListeners = () => {
     query(".toolbox-cont").addEventListener("click", (event) => {
         const targetClassList = event.target.classList;
         if (targetClassList.contains("fa-plus")) {
             toggleModal();
+        } else if(targetClassList.contains("fa-trash")) {
+            toggleRemoveFlag();
         }
     });
 
@@ -130,6 +151,8 @@ const loadTicketsFromLocalStorage = () => {
         query(`#${val.status}`).appendChild(ticketEl);
 
         addLockUnlockHandler(ticketEl, val.id);
+
+        deleteTicketHandler(ticketEl, val.id);
     })
 }
 
