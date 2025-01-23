@@ -32,6 +32,7 @@ const createTicketElement = (priorityColor, id, task) => {
 
     ticketContainer.className = "ticket-cont";
     ticketContainer.id = id;
+    ticketContainer.draggable = true;
 
     ticketContainer.innerHTML =
         `<div class="ticket-color ${priorityColor}"></div>
@@ -119,6 +120,44 @@ const toggleRemoveFlag = () => {
     removeBtn.style.color = isRemoveFlagEnabled ? "red" : "black";
 }
 
+const handleDragStart = (event) => {
+
+    event.dataTransfer.setData("text/plain", event.target.id);
+    event.target.classList.add("dragging");
+}
+
+const handleDragEnd = () => {
+
+    event.target.classList.remove('dragging');
+}
+
+const handleDrop = (event) => {
+    
+    const taskId = event.dataTransfer.getData("text/plain");
+    
+    const droppedTicket = query(`#${taskId}`);
+    // console.log(droppedTicket);
+
+    const targetContainer = event.target.closest(".ticket-container")
+    // console.log(targetContainer);
+
+    if(droppedTicket && targetContainer) {
+        const sourceContainer = droppedTicket.closest(".ticket-container")
+        // console.log(sourceContainer);
+
+        sourceContainer.removeChild(droppedTicket);
+
+        targetContainer.appendChild(droppedTicket);
+
+        const idx = taskArr.findIndex((val) => val.id === taskId);
+        console.log(idx);
+
+        taskArr[idx].status = targetContainer.id;
+
+        updateLocalStorage("tickets", taskArr);
+    }
+}
+
 const setupEventListeners = () => {
     query(".toolbox-cont").addEventListener("click", (event) => {
         const targetClassList = event.target.classList;
@@ -140,6 +179,12 @@ const setupEventListeners = () => {
     queryAll(".priority-color").forEach(el => {
         el.addEventListener("click", handlePriorityColorSelection);
     })
+
+    const mainContainer = query(".main-cont");
+    mainContainer.addEventListener("dragstart", handleDragStart);
+    mainContainer.addEventListener("dragover", (event) => {event.preventDefault()});
+    mainContainer.addEventListener("dragend", handleDragEnd);
+    mainContainer.addEventListener("drop", handleDrop);
 }
 
 const loadTicketsFromLocalStorage = () => {
